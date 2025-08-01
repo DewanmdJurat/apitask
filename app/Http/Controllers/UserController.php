@@ -12,14 +12,10 @@ class UserController extends Controller
 
     public function index()
     {
-        Gate::authorize('admin-only');
-        try {
-            $users =  User::all();
 
-            return $this->successResponse( $users,'Logged out');
-        } catch (\Exception $exception) {
-            return $this->errorResponse('Something went wrong. please try again.',500);
-        }
+        $users =  User::all();
+        return $this->successResponse( $users);
+
     }
 
     public function profile()

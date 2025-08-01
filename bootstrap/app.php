@@ -12,6 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         then: function (Application $app) {
             $app->router->aliasMiddleware('permission', \App\Http\Middleware\CheckPermission::class);
+            $app->router->aliasMiddleware('admin', \App\Http\Middleware\CheckAdminPermission::class);
         }
     )
     ->withMiddleware(function (Middleware $middleware) {
