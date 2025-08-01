@@ -8,6 +8,7 @@ use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 
@@ -41,11 +42,43 @@ class AuthorizationController extends Controller
         return $this->successResponse([
             'accessToken' => $token,
             'user' => (object)[
-                'id'            => $user->id,
+                'id'          => $user->id,
+                'name'       => $user->name,
                 'email'       => $user->email,
-                'role'          => $user->role_id,
-                'country_id'    => 30,
             ],
         ]);
     }
+    public function Register(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:100',
+            'email' => 'required|email|max:30',
+            'password' => 'required|min:6|max:50|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse('Validation Failed', 422, $validator->errors());
+        }
+        $name = $request->get('name');
+        $email = $request->get('email');
+        $password = $request->get('password');
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $email,
+            'password' => Hash::make($password),
+        ]);
+
+        $token =  $user->createToken($email)->plainTextToken;
+
+        return $this->successResponse([
+            'accessToken' => $token,
+            'user' => (object)[
+                'id'          => $user->id,
+                'name'        => $user->name,
+                'email'       => $user->email,
+            ],
+        ]);
+    }
+
 }
