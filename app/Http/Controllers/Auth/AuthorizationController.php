@@ -26,7 +26,7 @@ class AuthorizationController extends Controller
             return $this->errorResponse('Validation Failed', 422, $validator->errors());
         }
         $email = $request->get('email');
-        $user = User::where('email', $email)->first();
+        $user = User::with('roles.permissions')->where('email', $email)->first();
         if($user == null) {
           return  $this->errorResponse('The provided credentials are incorrect.',401);
         }
@@ -45,6 +45,8 @@ class AuthorizationController extends Controller
                 'id'          => $user->id,
                 'name'       => $user->name,
                 'email'       => $user->email,
+                'roles'       => $user->roles->pluck('name'),
+                'permissions' => $user->getAllPermissions(),
             ],
         ]);
     }
@@ -68,7 +70,7 @@ class AuthorizationController extends Controller
             'email' => $email,
             'password' => Hash::make($password),
         ]);
-
+        $user->load('roles.permissions');
         $token =  $user->createToken($email)->plainTextToken;
 
         return $this->successResponse([
@@ -77,6 +79,8 @@ class AuthorizationController extends Controller
                 'id'          => $user->id,
                 'name'        => $user->name,
                 'email'       => $user->email,
+                'roles'       => $user->roles->pluck('name'),
+                'permissions' => $user->getAllPermissions(),
             ],
         ]);
     }

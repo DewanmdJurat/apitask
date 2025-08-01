@@ -12,4 +12,11 @@ Route::post('/login', [\App\Http\Controllers\Auth\AuthorizationController::class
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [\App\Http\Controllers\Auth\AuthorizationController::class,'logout']);
+    Route::get('/profile', [\App\Http\Controllers\UserController::class, 'profile']);
+
+    Route::get('/users', [\App\Http\Controllers\UserController::class, 'index'])->middleware('can:admin-only');
+    Route::post('/users/{id}/assign-role', [\App\Http\Controllers\UserController::class, 'assignRole'])->middleware('can:admin-only');
+
+    Route::apiResource('articles', \App\Http\Controllers\ArticleController::class);
+
 });

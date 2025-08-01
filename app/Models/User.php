@@ -64,4 +64,16 @@ class User extends Authenticatable
             })->exists();
     }
 
+    public function getAllPermissions()
+    {
+        return $this->roles()
+            ->with('permissions')
+            ->get()
+            ->pluck('permissions')
+            ->flatten()
+            ->pluck('name')
+            ->unique()
+            ->values();
+    }
+
 }
