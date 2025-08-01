@@ -17,6 +17,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users', [\App\Http\Controllers\UserController::class, 'index'])->middleware('can:admin-only');
     Route::post('/users/{id}/assign-role', [\App\Http\Controllers\UserController::class, 'assignRole'])->middleware('can:admin-only');
 
-    Route::apiResource('articles', \App\Http\Controllers\ArticleController::class);
+    Route::get('/articles', [\App\Http\Controllers\ArticleController::class, 'index'])->middleware('permission:view-published');
+    Route::get('/articles/mine', [\App\Http\Controllers\ArticleController::class, 'mine'])->middleware('permission:view-own-articles');
+    Route::post('/articles', [\App\Http\Controllers\ArticleController::class, 'store'])->middleware('permission:create-article');
+    Route::put('/articles/{article}', [\App\Http\Controllers\ArticleController::class, 'update'])->middleware('permission:edit-own-article');
+    Route::delete('/articles/{article}', [\App\Http\Controllers\ArticleController::class, 'destroy'])->middleware('permission:delete-article');
+    Route::patch('/articles/{article}/publish', [\App\Http\Controllers\ArticleController::class, 'publish'])->middleware('permission:publish-article');
 
 });
