@@ -81,4 +81,16 @@ class AuthorizationController extends Controller
         ]);
     }
 
+    public function Logout(Request $request)
+    {
+        try {
+            $request->user()->currentAccessToken()->delete();
+
+            return $this->successResponse( '','Logged out');
+        } catch (\Exception $exception) {
+            return $this->errorResponse('Something went wrong. please try again.',500);
+        }
+
+    }
+
 }
