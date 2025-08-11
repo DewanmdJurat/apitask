@@ -1,68 +1,357 @@
-Overview
-This project is a Laravel 11-based REST API implementing user roles and permissions with Sanctum authentication.
-The API includes features like user management, article CRUD, and role/permission based access control.
 
-Branches
-master: Active development branch
+#  Laravel 11 Role-Based Article Management API
 
-main: Stable production branch — merges from master
+A Laravel 11 REST API for managing articles with role-based access control.
 
-You should work locally on master and merge into main when ready.
+---
 
-Requirements
-PHP 8.1 or higher (required by Laravel 11)
+##  Requirements
 
-Composer
+- PHP 8.2.12
+- Laravel 11
+- Sanctum (for API authentication)
 
-Installation Steps
-Clone the repository and checkout master branch:
+---
 
-bash
-Copy
-Edit
-git clone <repo-url>
-git checkout master
-Install PHP dependencies:
+## 👤 Roles & Permissions
 
-Make sure you have PHP 8.1+ installed on your machine, then run:
+| Role   | Permissions |
+|--------|-------------|
+| **Admin**  | `view-all-users`, `assign-roles`, `publish-article`, `delete-article`, `view-published` |
+| **Editor** | `publish-article`, `view-published` |
+| **Author** | `create-article`, `edit-own-article`, `view-own-articles`, `view-published` |
 
-bash
-Copy
-Edit
-composer install
-Set up your .env file:
+---
 
-Copy .env.example to .env and configure your database and other environment variables.
+##  Seeders
 
-Run migrations and seeders:
+Run the following commands to seed roles and users:
 
-bash
-Copy
-Edit
-php artisan migrate --seed
-This will create tables and seed roles, permissions, and three default users.
+```bash
+php artisan db:seed
+```
 
-Seeders Info:
+###  Default Users
 
-The seeder creates the following roles and users:
+| Role   | Email              | Password    |
+|--------|--------------------|-------------|
+| Admin  | admin@example.com  | password123 |
+| Editor | editor@example.com | password123 |
+| Author | author@example.com | password123 |
 
-Roles: admin, editor, author
+---
 
-Users: Three users are created (see database/seeders for details).
 
-Permissions are also seeded and attached to roles.
+##  Authentication
 
-Testing the API
-I shared a postman file in project base path(apitask.json)
+###  POST `/api/login`
 
-The collection includes:
+**Request**
+```json
+{
+  "email": "author@example.com",
+  "password": "password123"
+}
+```
 
-User registration and login
+**Response**
+```json
+{
+  "status": "success",
+  "message": "Success",
+  "data": {
+    "accessToken": "ACCESS_TOKEN",
+    "user": {
+      "id": 3,
+      "name": "Author User",
+      "email": "author@example.com",
+      "roles": ["author"],
+      "permissions": [
+        "create-article",
+        "edit-own-article",
+        "view-own-articles",
+        "view-published"
+      ]
+    }
+  }
+}
+```
 
-Role assignment (admin only)
+---
 
-Article CRUD operations
+###  POST `/api/register`
 
-Permission-protected routes
+**Request**
+```json
+{
+  "name": "dewan1",
+  "email": "dewan1@gmail.com",
+  "password": "password123"
+}
+```
 
-For authenticated requests, include the Bearer Token from login responses.
+**Response**
+```json
+{
+  "status": "success",
+  "message": "Success",
+  "data": {
+    "accessToken": "ACCESS_TOKEN",
+    "user": {
+      "id": 4,
+      "name": "dewan1",
+      "email": "dewan1@gmail.com",
+      "roles": [],
+      "permissions": []
+    }
+  }
+}
+```
+
+---
+
+###  POST `/api/logout`
+
+**Headers**
+```
+Authorization: Bearer ACCESS_TOKEN
+```
+**Request**
+```json
+{
+  "email":"author@example.com"
+}
+```
+---
+
+##  Article Endpoints
+
+> All endpoints below require `Bearer Token` authentication.
+
+---
+
+###  GET `/api/articles`
+
+List all **published** articles.
+
+**Permission Required**: `view-published`
+
+**Response**
+```json
+{
+  "status": "success",
+  "message": 200,
+  "data": [
+    {
+      "id": 1,
+      "title": "test one",
+      "slug": "test-one",
+      "body": "test body",
+      "status": 2,
+      "user_id": 1,
+      "created_at": "2025-08-01T13:39:40.000000Z",
+      "updated_at": "2025-08-01T13:39:49.000000Z"
+    }
+  ]
+}
+```
+
+---
+
+###  GET `/api/articles/mine`
+
+List **user's own** articles.
+
+**Permission Required**: `view-own-articles`
+
+**Response**
+```json
+{
+  "status": "success",
+  "message": 200,
+  "data": [
+    {
+      "id": 1,
+      "title": "test one",
+      "slug": "test-one",
+      "body": "test body",
+      "status": 1,
+      "user_id": 1,
+      "created_at": "2025-08-01T13:39:40.000000Z",
+      "updated_at": "2025-08-01T13:39:49.000000Z"
+    }
+  ]
+}
+```
+
+---
+
+###  POST `/api/articles`
+
+Create a new article.
+
+**Permission Required**: `create-article`
+
+**Request**
+```json
+{
+  "title": "test one",
+  "slug": "slug one",
+  "body": "test body"
+}
+```
+
+**Response**
+```json
+{
+  "status": "success",
+  "message": 201,
+  "data": {
+    "id": 2,
+    "title": "test one",
+    "slug": "slug-one",
+    "body": "test body",
+    "status": 1,
+    "user_id": 1,
+    "created_at": "...",
+    "updated_at": "..."
+  }
+}
+```
+
+---
+
+###  PUT `/api/articles`
+
+Update your own article.
+
+**Permission Required**: `edit-own-article`
+
+**Request**
+```json
+{
+  "title": "test one 1",
+  "slug": "slug one",
+  "body": "test body"
+}
+```
+
+**Response**
+```json
+{
+    "status": "success",
+    "message": 200,
+    "data": {
+        "id": 1,
+        "title": "test one 1",
+        "slug": "test-one-1",
+        "body": "test body 1",
+        "status": 1,
+        "user_id": 1,
+        "created_at": "2025-08-01T13:39:40.000000Z",
+        "updated_at": "2025-08-11T09:10:07.000000Z"
+    }
+}
+```
+
+---
+
+###  DELETE `/api/articles`
+
+Delete an article by ID.
+
+**Permission Required**: `delete-article`
+
+**Request**
+```json
+{
+  "id": 1
+}
+```
+
+**Response**
+```json
+{
+  "message": "Article deleted."
+}
+```
+
+---
+
+###  PATCH `/api/articles/{id}/publish`
+
+Publish an article.
+
+**Permission Required**: `publish-article`
+
+**Request**
+```json
+{
+  "status": 1
+}
+```
+
+**Response**
+```json
+{
+  "message": "Article published."
+}
+```
+
+---
+---
+
+###  GET `/api/users`
+
+List all users
+
+**Permission Required**: `view-published`
+
+**Response**
+```json
+{
+    "status": "success",
+    "message": "get user successfully",
+    "data": [
+        {
+            "id": 1,
+            "name": "Admin User",
+            "email": "admin@example.com",
+            "email_verified_at": null,
+            "created_at": "2025-08-01T11:41:01.000000Z",
+            "updated_at": "2025-08-01T11:41:01.000000Z"
+        },
+        {
+            "id": 2,
+            "name": "Editor User",
+            "email": "editor@example.com",
+            "email_verified_at": null,
+            "created_at": "2025-08-01T11:41:01.000000Z",
+            "updated_at": "2025-08-01T11:41:01.000000Z"
+        },
+        {
+            "id": 3,
+            "name": "Author User",
+            "email": "author@example.com",
+            "email_verified_at": null,
+            "created_at": "2025-08-01T11:41:01.000000Z",
+            "updated_at": "2025-08-01T11:41:01.000000Z"
+        },
+        {
+            "id": 4,
+            "name": "dewan1",
+            "email": "dewan1@gmail.com",
+            "email_verified_at": null,
+            "created_at": "2025-08-11T04:30:39.000000Z",
+            "updated_at": "2025-08-11T04:30:39.000000Z"
+        }
+    ]
+}
+```
+
+---
+
+##  Support
+
+For questions or issues, please open a GitHub issue.
+

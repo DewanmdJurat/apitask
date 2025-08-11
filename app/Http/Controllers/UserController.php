@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Auth\Access\Gate;
 use Illuminate\Http\Request;
@@ -14,7 +15,7 @@ class UserController extends Controller
     {
 
         $users =  User::all();
-        return $this->successResponse( $users);
+        return $this->successResponse( $users,'get user successfully');
 
     }
 
